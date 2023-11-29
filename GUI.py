@@ -175,69 +175,50 @@ def create_movie_checkboxes():
 create_movie_checkboxes()
 # Function that checks the search entry and compares it with the movie data to find a match
 def search_movie_file(entry):
-    def read_tsv_file(filename):
+    def read_tsv_file(filename, title):
         data_dict = {}
+        i = 0
         with open(filename, 'r', encoding='utf-8') as file:
             for line in file:
                 columns = line.strip().split('\t')
                 if len(columns) >= 3:
                     value_to_compare = columns[2].lower()  # Convert to lowercase for case-insensitive comparison
-                    if value_to_compare not in data_dict:
-                        data_dict[value_to_compare] = []
-                    data_dict[value_to_compare].append(line.strip())  # Save the whole row
+                    if value_to_compare == title:
+                        i = i-1
+                        data_dict.setdefault(i, []).append(line.strip().split('\t'))  # Save Entire Row
         return data_dict
     # Checks if there are movie titles that are not an exact match but contains the searched value and returns the rows
     # that contain it in a dictionary
     def search_tsv_file(filename, partial_string):
         data_dict = {}
         with open(filename, 'r', encoding='utf-8') as file:  # Adjust the encoding as needed
+            i = -1
             for line in file:
                 columns = line.strip().split('\t')
                 if len(columns) >= 3:
                     if partial_string.lower() in columns[2].lower():  # Check if partial string is in the third column
-                        if partial_string not in data_dict:
-                            data_dict[partial_string] = []
-                        data_dict[partial_string].append(line.strip())  # Save the whole row
-
+                        i = i + 1
+                        data_dict.setdefault(i, []).append(line.strip().split('\t'))  # Save the whole row
         return data_dict
 
-    searched_movie_data = read_tsv_file('ratedMovies.tsv')
     search_value = entry
     search_key = search_value.lower()
-
-    if search_key in searched_movie_data:
-        matching_rows = searched_movie_data[search_key]
-        for row in matching_rows:
-            print(row)  # Modify as needed, here printing the matching rows
-    else:
-        print("No matching rows found for ", search_value)
+    exact_match_data = read_tsv_file('ratedMovies.tsv', search_key)
 
 
     if len(search_key) >3:
-        file_data = search_tsv_file('ratedMovies.tsv', search_key)
-
-        # Access the stored rows in the dictionary
-        if search_key in file_data:
-            partial_rows = file_data[search_key]
-            for row in partial_rows:
-                print(row)  # Modify as needed, here printing the matching rows
-        else:
-            print("No rows found containing", search_key)
+        partial_match_data = search_tsv_file('ratedMovies.tsv', search_key)
+        combined_dict = {**exact_match_data, **partial_match_data}
+        # Print the sorted combined dictionary
+        for key, values in combined_dict.items():
+            print(f"{key}: {values}")
+    else:
+        print(exact_match_data)
 
 
-    def sort_dictonary(dict):
-        sorted_dict = dict(sorted(dict.items(), key=lambda item: item[1][5] if len(item[1]) > 5 else float('inf')))
-        # Sort based on the 6th element if it exists, otherwise place it at the end using float('inf')
-
-        print("Sorted Dictionary based on the 6th value in each row:")
-        for key, value in sorted_dict.items():
-            print(key, ":", value)
-    #sort_dictonary(matching_rows)
-    #sort_dictonary(partial_rows)
-    #combined_dict = {**matching_rows, **partial_rows}
 
 
-    #def combine_sorted_dictonarys():
+
 
 
 
